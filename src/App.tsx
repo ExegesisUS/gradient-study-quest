@@ -38,30 +38,44 @@ const App = () => {
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (session?.user) {
           setUser(session.user);
-          
+
+          // Check if user is an admin
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          const isAdmin = roles && roles.role === 'admin';
+
           // Regular user flow
           const savedUserData = localStorage.getItem('ada-user-data');
           if (savedUserData) {
             setUserData(JSON.parse(savedUserData));
-            
-            // Check subscription status
-            const { data: subscription } = await supabase
-              .from('stripe_user_subscriptions')
-              .select('*')
-              .maybeSingle();
-            
-            if (subscription && (subscription as any).subscription_status === 'active') {
+
+            // Admins bypass subscription check
+            if (isAdmin) {
               setCurrentScreen('dashboard');
             } else {
-              // Check URL for success redirect
-              const urlParams = new URLSearchParams(window.location.search);
-              if (urlParams.get('session_id')) {
-                setCurrentScreen('success');
+              // Check subscription status
+              const { data: subscription } = await supabase
+                .from('stripe_user_subscriptions')
+                .select('*')
+                .maybeSingle();
+
+              if (subscription && (subscription as any).subscription_status === 'active') {
+                setCurrentScreen('dashboard');
               } else {
-                setCurrentScreen('subscription');
+                // Check URL for success redirect
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('session_id')) {
+                  setCurrentScreen('success');
+                } else {
+                  setCurrentScreen('subscription');
+                }
               }
             }
           } else {
@@ -84,27 +98,41 @@ const App = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
-        
+
+        // Check if user is an admin
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        const isAdmin = roles && roles.role === 'admin';
+
         // Navigate user after successful login
         const savedUserData = localStorage.getItem('ada-user-data');
         if (savedUserData) {
           setUserData(JSON.parse(savedUserData));
-          
-          // Check subscription status
-          const { data: subscription } = await supabase
-            .from('stripe_user_subscriptions')
-            .select('*')
-            .maybeSingle();
-          
-          if (subscription && (subscription as any).subscription_status === 'active') {
+
+          // Admins bypass subscription check
+          if (isAdmin) {
             setCurrentScreen('dashboard');
           } else {
-            // Check URL for success redirect
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('session_id')) {
-              setCurrentScreen('success');
+            // Check subscription status
+            const { data: subscription } = await supabase
+              .from('stripe_user_subscriptions')
+              .select('*')
+              .maybeSingle();
+
+            if (subscription && (subscription as any).subscription_status === 'active') {
+              setCurrentScreen('dashboard');
             } else {
-              setCurrentScreen('subscription');
+              // Check URL for success redirect
+              const urlParams = new URLSearchParams(window.location.search);
+              if (urlParams.get('session_id')) {
+                setCurrentScreen('success');
+              } else {
+                setCurrentScreen('subscription');
+              }
             }
           }
         } else {
