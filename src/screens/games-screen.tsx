@@ -72,7 +72,7 @@ const minigames = [
     icon: Sparkles,
     xpReward: 60,
     difficulty: 'Hard',
-    requiresPremium: false,
+    requiresPremium: true,
     category: 'Logic'
   },
   {
@@ -82,7 +82,7 @@ const minigames = [
     icon: Grid,
     xpReward: 70,
     difficulty: 'Expert',
-    requiresPremium: false,
+    requiresPremium: true,
     category: 'Logic'
   }
 ];

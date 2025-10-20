@@ -164,12 +164,9 @@ export const QuestionnaireScreen: React.FC<QuestionnaireScreenProps> = ({
               <p className="text-sm text-text-secondary">
                 {selectedSubjects.length} subject{selectedSubjects.length !== 1 ? 's' : ''} selected
               </p>
-              <p className="text-xs text-text-muted mt-1">
-                Scroll to see all subjects
-              </p>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-3 px-1 pb-24 scrollbar-thin scrollbar-thumb-gradient-purple scrollbar-track-surface-muted">
+            <div className="flex-1 overflow-y-auto space-y-3 px-1 pb-24">
               {apSubjects.map((subject, index) => (
                 <div
                   key={subject}

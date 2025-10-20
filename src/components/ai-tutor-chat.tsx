@@ -4,6 +4,7 @@ import { GradientButton } from './ui/gradient-button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './ui/use-toast';
 import { Brain, Send, Loader2, Sparkles } from 'lucide-react';
+import { usePromptLimits } from '@/hooks/use-prompt-limits';
 
 interface AITutorChatProps {
   subject: string;
@@ -15,14 +16,34 @@ export const AITutorChat: React.FC<AITutorChatProps> = ({ subject }) => {
   const [loading, setLoading] = useState(false);
   const [generatedFlashcards, setGeneratedFlashcards] = useState<Array<{front: string, back: string}>>([]);
   const { toast } = useToast();
+  const { usage, loading: limitsLoading, incrementUsage, hasUnlimitedPrompts } = usePromptLimits();
 
   const handleGenerateFlashcards = async () => {
     if (!prompt.trim()) return;
+
+    if (!hasUnlimitedPrompts && !usage.canUsePrompt) {
+      toast({
+        title: "Prompt Limit Reached",
+        description: `You've reached your ${usage.dailyUsed >= usage.dailyLimit ? 'daily' : 'monthly'} limit. Upgrade to Personal+ for unlimited prompts!`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     console.log('Generating flashcards for:', subject, 'with prompt:', prompt);
 
     try {
+      const incremented = await incrementUsage();
+      if (!incremented && !hasUnlimitedPrompts) {
+        toast({
+          title: "Error",
+          description: "Failed to track usage. Please try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
       const { data, error } = await supabase.functions.invoke('ai-tutor', {
         body: {
           type: 'flashcard',
@@ -100,8 +121,27 @@ export const AITutorChat: React.FC<AITutorChatProps> = ({ subject }) => {
   const handleGetExplanation = async () => {
     if (!prompt.trim()) return;
 
+    if (!hasUnlimitedPrompts && !usage.canUsePrompt) {
+      toast({
+        title: "Prompt Limit Reached",
+        description: `You've reached your ${usage.dailyUsed >= usage.dailyLimit ? 'daily' : 'monthly'} limit. Upgrade to Personal+ for unlimited prompts!`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      const incremented = await incrementUsage();
+      if (!incremented && !hasUnlimitedPrompts) {
+        toast({
+          title: "Error",
+          description: "Failed to track usage. Please try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
       const { data, error } = await supabase.functions.invoke('ai-tutor', {
         body: {
           type: 'explanation',
@@ -153,10 +193,17 @@ export const AITutorChat: React.FC<AITutorChatProps> = ({ subject }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Brain className="w-5 h-5 text-gradient-purple" />
-        <h3 className="text-lg font-semibold text-text-primary">AI Tutor for {subject}</h3>
-        <Sparkles className="w-4 h-4 text-gradient-orange animate-pulse" />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Brain className="w-5 h-5 text-gradient-purple" />
+          <h3 className="text-lg font-semibold text-text-primary">AI Tutor for {subject}</h3>
+          <Sparkles className="w-4 h-4 text-gradient-orange animate-pulse" />
+        </div>
+        {!limitsLoading && !hasUnlimitedPrompts && (
+          <div className="text-xs text-text-muted">
+            {usage.dailyUsed}/{usage.dailyLimit} daily | {usage.monthlyUsed}/{usage.monthlyLimit} monthly
+          </div>
+        )}
       </div>
 
       <GradientCard>
@@ -177,7 +224,7 @@ export const AITutorChat: React.FC<AITutorChatProps> = ({ subject }) => {
           <div className="flex gap-2">
             <GradientButton
               onClick={handleGetExplanation}
-              disabled={loading || !prompt.trim()}
+              disabled={loading || !prompt.trim() || limitsLoading || (!hasUnlimitedPrompts && !usage.canUsePrompt)}
               className="flex-1"
             >
               {loading ? (
@@ -192,7 +239,7 @@ export const AITutorChat: React.FC<AITutorChatProps> = ({ subject }) => {
 
             <GradientButton
               onClick={handleGenerateFlashcards}
-              disabled={loading || !prompt.trim()}
+              disabled={loading || !prompt.trim() || limitsLoading || (!hasUnlimitedPrompts && !usage.canUsePrompt)}
               className="flex-1"
             >
               {loading ? (
