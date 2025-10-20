@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle, ArrowRight, Crown } from 'lucide-react';
+import { CircleCheck as CheckCircle, ArrowRight, Crown } from 'lucide-react';
 import { getUserSubscription } from '../lib/stripe';
 import { STRIPE_PRODUCTS } from '../stripe-config';
 

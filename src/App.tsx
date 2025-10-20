@@ -5,7 +5,7 @@ import { AuthForm } from './components/AuthForm';
 import { SubscriptionStatus } from './components/SubscriptionStatus';
 import { PricingPage } from './pages/PricingPage';
 import { SuccessPage } from './pages/SuccessPage';
-import { GraduationCap, LogOut, CreditCard, Home } from 'lucide-react';
+import { GraduationCap, LogOut, CreditCard, Hop as Home } from 'lucide-react';
 
 function App() {
   const [user, setUser] = useState<any>(null);
