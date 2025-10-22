@@ -71,10 +71,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <div className="relative z-10 w-full max-w-sm space-y-8 animate-fade-in">
         {/* Logo Section */}
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto mb-4 gradient-outline rounded-2xl p-1">
-            <div className="w-full h-full gradient-outline-content rounded-xl flex items-center justify-center bg-background">
-              <img src="/lovable-uploads/df8fefa1-f972-424c-8656-7a77d894efdf.png" alt="ADA" className="w-12 h-12" />
-            </div>
+          <div className="w-32 h-32 mx-auto mb-4">
+            <img
+              src="/src/assets/ADA_Edu_Logo-removebg-preview.png"
+              alt="ADA Education"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold gradient-text">Welcome Back</h1>
